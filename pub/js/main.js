@@ -1,1 +1,0 @@
-let exampleVariable1=1,exampleVariable2=2;
