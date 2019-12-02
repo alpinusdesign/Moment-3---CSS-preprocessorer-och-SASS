@@ -2,9 +2,10 @@
   - Author: Linus Östlund
   - Contact: list1507@student.miun.se
   - Course: Webbutveckling III
-  - Assignment: Moment 2 - NodeJs och Gulp
-  - Last updated: 2019-10-01
+  - Assignment: Moment 3 - CSS-preprocessorer och SASS
+  - Last updated: 2019-12-02
 */
+'use strict';
 
 /* - Includes - */
 const gulp = require('Gulp');
@@ -12,24 +13,28 @@ const concat = require('gulp-concat');
 const terser = require('gulp-terser');
 const image = require('gulp-image');
 const autoprefixer = require('gulp-autoprefixer');
-const cleanCSS = require('gulp-clean-css');
 const browserSync = require('browser-sync').create();
+const sass = require('gulp-sass');
+sass.compiler = require('node-sass');
+const sourcemaps = require('gulp-sourcemaps');
 
 /* - File paths - */
 const files = {
   htmlPath: "src/*.html",
-  cssPath: "src/**/*.css",
+  sassPath: "src/**/*.scss",
   jsPath: "src/**/*.js",
   imgPath: "src/img/*"
 }
 
-// Task: Add prefixes, concatenate and minify CSS-files.
-function cssTask()
+// Task: Compile SASS-files, add prefixes, concatenate and minify CSS-files..
+function sassTask()
 {
-  return gulp.src(files.cssPath)
+  return gulp.src(files.sassPath)
+  .pipe(sourcemaps.init())
+  .pipe(sass({outputStyle:'compressed'}).on('error', sass.logError))
   .pipe(autoprefixer({ browsers: ['IE 6','Chrome 9', 'Firefox 14']}))
   .pipe(concat('styles.css'))
-  .pipe(cleanCSS({compatibility: 'ie8'}))
+  .pipe(sourcemaps.write('./maps'))
   .pipe(gulp.dest('pub/css'))
   .pipe(browserSync.stream());
 }
@@ -72,13 +77,13 @@ function watchTask()
   });
 
   // - Watch files.
-  gulp.watch([files.htmlPath, files.cssPath, files.jsPath, files.imgPath],
-    gulp.parallel(htmlTask, cssTask, jsTask, imgTask)
+  gulp.watch([files.htmlPath, files.sassPath, files.jsPath, files.imgPath],
+    gulp.parallel(htmlTask, sassTask, jsTask, imgTask)
   ).on('change', browserSync.reload);
 }
 
 /* - Default - */
 exports.default = gulp.series(
-  gulp.parallel(htmlTask, cssTask, jsTask, imgTask),
+  gulp.parallel(htmlTask, sassTask, jsTask, imgTask),
   watchTask
 );
